@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Philosophy Quiz RK1 Y2S3 + AI Tutor</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --ai-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color-scheme: dark;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+        }
+
+        .btn-option {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            color: #334155;
+            font-weight: 500;
+            border-radius: 1rem;
+            padding: 1rem 1.25rem;
+            text-align: left;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .btn-option:hover:not(:disabled) {
+            border-color: #6366f1;
+            background: #f8fafc;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-option.correct {
+            background: var(--success-gradient) !important;
+            color: white !important;
+            border-color: transparent !important;
+            animation: pulse-correct 0.5s ease;
+        }
+
+        .btn-option.incorrect {
+            background: var(--danger-gradient) !important;
+            color: white !important;
+            border-color: transparent !important;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes pulse-correct {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        .badge-redemption {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            font-weight: 600;
+            animation: bounce-badge 1s infinite alternate;
+        }
+
+        @keyframes bounce-badge {
+            from { transform: translateY(0); }
+            to { transform: translateY(-3px); }
+        }
+
+        .progress {
+            height: 10px;
+            border-radius: 9999px;
+            background-color: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: var(--primary-gradient);
+            border-radius: 9999px;
+            transition: width 0.4s ease;
+        }
+
+        .custom-textarea {
+            border-radius: 1rem;
+            border: 2px solid #e2e8f0;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .custom-textarea:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .upload-dropzone {
+            border: 2px dashed #a5b4fc;
+            background: #f8fafc;
+            border-radius: 1.25rem;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        .upload-dropzone:hover {
+            border-color: #6366f1;
+            background: #eef2ff;
+        }
+
+        .ai-btn {
+            background: var(--ai-gradient);
+            color: white;
+            border: none;
+            border-radius: 9999px;
+            padding: 0.5rem 1.2rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .ai-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            color: white;
+        }
+
+        .ai-explanation-box {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .chat-bubble-user {
+            background: #e0e7ff;
+            color: #3730a3;
+            border-radius: 1rem 1rem 0 1rem;
+            padding: 0.75rem 1rem;
+            max-width: 80%;
+            margin-left: auto;
+            margin-bottom: 0.75rem;
+        }
+
+        .chat-bubble-ai {
+            background: #f1f5f9;
+            color: #1e293b;
+            border-radius: 1rem 1rem 1rem 0;
+            padding: 0.75rem 1rem;
+            max-width: 80%;
+            margin-right: auto;
+            margin-bottom: 0.75rem;
+        }
+    </style>
+</head>
+<body class="py-4 px-3">
+
+    <!-- Header / Navbar -->
+    <div class="container max-w-xl mx-auto mb-4">
+        <header class="d-flex justify-content-between align-items-center py-2 px-3 glass-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle p-2 text-white d-flex align-items-center justify-content-center" style="background: var(--primary-gradient); width: 45px; height: 45px;">
+                    <i class="fa-solid fa-graduation-cap fs-5"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold" id="quiz-main-title">Philosophy Quiz</h5>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn ai-btn btn-sm" id="open-ai-tutor-btn">
+                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI Репетитор
+                </button>
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#configModal">
+                    <i class="fa-solid fa-sliders me-1"></i> Редактор
+                </button>
+            </div>
+        </header>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="container max-w-xl mx-auto my-auto" style="max-width: 720px;">
+        
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="glass-card p-4 p-md-5 text-center">
+            <div class="mb-4">
+                <span class="badge rounded-pill bg-indigo-subtle text-indigo px-3 py-2 fs-6 mb-3" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">Интерактивный экзамен с ИИ</span>
+                <h1 class="fw-bold mb-3 display-6">Проверь свои знания</h1>
+                <p class="text-muted col-lg-10 mx-auto">
+                    Мгновенный автопереход, авто-перемешивание ответов, механика <b>Redemption Round</b> и встроенный **Gemini AI ИИ-репетитор**!
+                </p>
+            </div>
+
+            <!-- Upload File Area -->
+            <div class="upload-dropzone p-4 mb-4" id="dropzone" onclick="document.getElementById('file-input').click();">
+                <i class="fa-solid fa-file-code fs-1 text-primary mb-2" style="color: #6366f1 !important;"></i>
+                <h6 class="fw-bold mb-1">Загрузить JS / JSON файл с тестом</h6>
+                <p class="text-muted small mb-0">Кликните или перетащите сюда `.js` файл с массивом QUESTIONS</p>
+                <input type="file" id="file-input" accept=".js,.json,.txt" class="d-none">
+            </div>
+            <div id="loaded-file-info" class="text-success small fw-bold mb-3 d-none">
+                <i class="fa-solid fa-circle-check me-1"></i> Загружен файл: <span id="file-name-text"></span> (<span id="file-q-count">0</span> вопросов)
+            </div>
+            
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <button id="start-btn" class="btn text-white px-5 py-3 rounded-pill fw-bold shadow-sm" style="background: var(--primary-gradient); font-size: 1.1rem;">
+                    <i class="fa-solid fa-play me-2"></i> Начать тест
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="glass-card p-4 p-md-5 d-none">
+            <!-- Progress & Stats Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span id="question-counter-badge" class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill fw-semibold">Вопрос 1 из 5</span>
+                    <span id="redemption-status-badge" class="badge badge-redemption px-3 py-2 rounded-pill d-none">
+                        <i class="fa-solid fa-rotate-left me-1"></i> Redemption Chance <span id="lives-count">3</span>/3
+                    </span>
+                </div>
+                <div class="text-muted small fw-semibold">
+                    <i class="fa-solid fa-star text-warning me-1"></i> Счёт: <span id="current-score" class="text-dark">0</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress mb-4">
+                <div id="progress-bar-fill" class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+
+            <!-- Question Box -->
+            <div class="mb-4 position-relative">
+                <h3 id="question-text" class="fw-bold fs-4 mb-3 text-dark lh-base">Загрузка вопроса...</h3>
+                
+                <button id="explain-ai-btn" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1 text-dark fw-semibold" style="font-size: 0.85rem;">
+                    <i class="fa-solid fa-brain me-1 text-primary"></i> Разъяснить вопрос с ИИ
+                </button>
+
+                <div id="ai-explanation-box" class="ai-explanation-box text-start">
+                    <div class="d-flex align-items-center gap-2 text-primary fw-bold mb-1">
+                        <i class="fa-solid fa-sparkles"></i> Разбор от Gemini AI:
+                    </div>
+                    <div id="ai-explanation-text" class="small text-secondary">Генерация разъяснения...</div>
+                </div>
+            </div>
+
+            <!-- Variants List -->
+            <div id="variants-container" class="d-grid gap-3 mb-2">
+                <!-- Dynamically injected option buttons -->
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="glass-card p-4 p-md-5 text-center d-none">
+            <div class="mb-4">
+                <div class="rounded-circle mx-auto p-3 text-white d-flex align-items-center justify-content-center mb-3 shadow" style="background: var(--success-gradient); width: 80px; height: 80px;">
+                    <i class="fa-solid fa-trophy fs-2"></i>
+                </div>
+                <h2 class="fw-bold mb-1">Тест завершен!</h2>
+                <p class="text-muted">Вы успешно ответили на все вопросы, проработав все ошибки.</p>
+            </div>
+
+            <div class="row g-3 mb-4 justify-content-center">
+                <div class="col-sm-4">
+                    <div class="p-3 bg-light rounded-4 border">
+                        <small class="text-muted d-block mb-1">Итоговый счет</small>
+                        <span id="final-score" class="fs-3 fw-bold text-indigo" style="color: #6366f1;">0</span>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="p-3 bg-light rounded-4 border">
+                        <small class="text-muted d-block mb-1">Правильных с 1 раза</small>
+                        <span id="final-correct" class="fs-3 fw-bold text-success">0</span>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="p-3 bg-light rounded-4 border">
+                        <small class="text-muted d-block mb-1">Через Redemption</small>
+                        <span id="final-redemption" class="fs-3 fw-bold text-warning">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Summary Box -->
+            <div class="p-3 bg-white border rounded-4 text-start mb-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0 text-primary"><i class="fa-solid fa-lightbulb me-1"></i> Шпаргалка по теме от Gemini AI</h6>
+                    <button id="generate-summary-btn" class="btn btn-sm btn-outline-primary rounded-pill">Сгенерировать</button>
+                </div>
+                <div id="ai-summary-content" class="small text-muted">
+                    Нажмите «Сгенерировать», чтобы получить краткую шпаргалку по философским терминам этого теста.
+                </div>
+            </div>
+
+            <button id="restart-btn" class="btn text-white px-5 py-3 rounded-pill fw-bold shadow-sm" style="background: var(--primary-gradient);">
+                <i class="fa-solid fa-rotate-right me-2"></i> Пройти еще раз
+            </button>
+        </div>
+
+    </main>
+
+    <!-- AI Tutor Offcanvas / Modal Chat -->
+    <div class="modal fade" id="aiTutorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 glass-card p-3 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-primary d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Gemini Философский Репетитор
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="chat-box" class="p-3 bg-white rounded-4 border mb-3" style="height: 320px; overflow-y: auto;">
+                        <div class="chat-bubble-ai">
+                            Привет! Я твой ИИ-преподаватель по философии. Спроси меня о любых терминах, философах или концепциях из этого теста!
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="chat-input" class="form-control rounded-pill-start border-end-0 px-3" placeholder="Задайте вопрос репетитору...">
+                        <button id="send-chat-btn" class="btn ai-btn rounded-pill-end px-4">Отправить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div class="modal fade" id="configModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 glass-card p-3 shadow-lg">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-code me-2"></i> Просмотр / Редактирование вопросов</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">Текущий массив вопросов (в формате JSON):</p>
+                    <div class="mb-3">
+                        <textarea id="json-input" class="form-control custom-textarea" rows="10" spellcheck="false"></textarea>
+                    </div>
+                    <div id="json-error" class="text-danger small fw-semibold mb-2 d-none">Ошибка в формате JSON.</div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" id="save-json-btn" class="btn text-white rounded-pill px-4" style="background: var(--primary-gradient);">Применить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-3 text-muted small">
+        Philosophy Quiz Engine &bull; Auto-shuffle & Auto-advance &bull; Powered by Gemini API
+    </footer>
+
+    <!-- jQuery and Bootstrap 5 JS Bundle -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        
+        // Gemini API Helper Function
+        async function callGemini(userQuery, systemInstruction = "") {
+            const apiKey = ""; // Canvas provides key at runtime
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }]
+            };
+
+            if (systemInstruction) {
+                payload.systemInstruction = {
+                    parts: [{ text: systemInstruction }]
+                };
+            }
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "Не удалось получить ответ от Gemini API.";
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                return "Произошла ошибка при обращении к ИИ.";
+            }
+        }
+
+        // Default Dataset
+        let defaultQuestionsData = [
+            {"name": "Philosophy Quiz RK1 Y2S3"},
+            {
+                "question": "Какой из разделов философии изучается формы чувственного познания (ощущения, восприятия, представления), рационального познания (понятия, суждения, умозаключения)?",
+                "variants": [
+                    "Гносеология",
+                    "Логика",
+                    "Эмпиризм",
+                    "Эпистемология",
+                    "Онтология"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Как называется раздел философии, в котором рассматриваются фундаментальные принципы устройства бытия, его начала, сущностные формы, свойства и категориальные распределения?",
+                "variants": [
+                    "Онтология",
+                    "Эпистемология",
+                    "Эстетика",
+                    "Логика",
+                    "Гносеология"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Как называется раздел философии, предметом которого изучения являются методы и способы правильного рассуждения, размышления, а также процесс мышления, которому свойственна закономерность, последовательность, доказательность?",
+                "variants": [
+                    "Логика",
+                    "Онтология",
+                    "Гносеология",
+                    "Философия",
+                    "Эпистемология"
+                ],
+                "answer": 0
+            }
+        ];
+
+        let quizTitle = "Philosophy Quiz";
+        let mainQueue = [];       
+        let redemptionQueue = []; 
+        let currentActiveQuestion = null;
+        let isRedemptionMode = false;
+        let score = 0;
+        let firstTryCorrectCount = 0;
+        let redemptionCorrectCount = 0;
+        let questionsSinceLastRedemption = 0;
+        let totalItemsProcessed = 0;
+        let totalInitialCount = 0;
+        let isAnsweringLocked = false;
+
+        $(document).ready(function() {
+            loadConfigIntoTextarea();
+
+            // AI Features Listeners
+            $('#open-ai-tutor-btn').on('click', function() {
+                const tutorModal = new bootstrap.Modal(document.getElementById('aiTutorModal'));
+                tutorModal.show();
+            });
+
+            $('#explain-ai-btn').on('click', async function() {
+                if (!currentActiveQuestion) return;
+                
+                const $box = $('#ai-explanation-box');
+                const $text = $('#ai-explanation-text');
+                $box.slideDown();
+                $text.html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Gemini анализирует вопрос...');
+
+                const prompt = `Объясни понятным языком вопрос по философии: "${currentActiveQuestion.question}". Объясни правильный вариант: "${currentActiveQuestion.variants[currentActiveQuestion.answer]}". Будь лаконичен (2-3 предложения).`;
+                const aiResult = await callGemini(prompt, "Ты доброжелательный и опытный преподаватель философии.");
+                
+                $text.text(aiResult);
+            });
+
+            $('#send-chat-btn').on('click', async function() {
+                const msg = $('#chat-input').val().trim();
+                if (!msg) return;
+
+                $('#chat-box').append(`<div class="chat-bubble-user">${msg}</div>`);
+                $('#chat-input').val('');
+                $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
+
+                const prompt = `Контекст вопроса: ${currentActiveQuestion ? currentActiveQuestion.question : 'Общие вопросы философии'}.\nВопрос пользователя: ${msg}`;
+                const aiReply = await callGemini(prompt, "Ты ИИ-преподаватель философии. Отвечай кратко, профессионально и понятно.");
+
+                $('#chat-box').append(`<div class="chat-bubble-ai">${aiReply}</div>`);
+                $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
+            });
+
+            $('#generate-summary-btn').on('click', async function() {
+                const $summaryBox = $('#ai-summary-content');
+                $summaryBox.html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Генерация шпаргалки...');
+
+                const allQuestionsText = defaultQuestionsData.filter(q => q.question).map(q => q.question).join('\n');
+                const prompt = `Сделай краткую шпаргалку (выжимку терминов и главных идей) по следующим философским вопросам:\n${allQuestionsText}`;
+                
+                const summary = await callGemini(prompt, "Ты составитель емких шпаргалок по философии.");
+                $summaryBox.text(summary);
+            });
+
+            // File Upload Listener
+            $('#file-input').on('change', function(e) {
+                let file = e.target.files[0];
+                if (!file) return;
+
+                let reader = new FileReader();
+                reader.onload = function(evt) {
+                    let content = evt.target.result;
+                    parseAndSetQuestionsFile(content, file.name);
+                };
+                reader.readAsText(file);
+            });
+
+            // Drag and drop setup
+            let dropzone = document.getElementById('dropzone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, preventDefaults, false);
+            });
+            function preventDefaults (e) { e.preventDefault(); e.stopPropagation(); }
+            dropzone.addEventListener('drop', function(e) {
+                let dt = e.dataTransfer;
+                let files = dt.files;
+                if (files.length > 0) {
+                    document.getElementById('file-input').files = files;
+                    $('#file-input').trigger('change');
+                }
+            });
+
+            $('#start-btn').on('click', function() {
+                initQuizSession();
+            });
+
+            $('#restart-btn').on('click', function() {
+                $('#results-screen').addClass('d-none');
+                $('#welcome-screen').removeClass('d-none');
+            });
+
+            $('#save-json-btn').on('click', function() {
+                try {
+                    let parsed = JSON.parse($('#json-input').val());
+                    if (!Array.isArray(parsed)) throw new Error("Формат должен быть массивом!");
+                    
+                    defaultQuestionsData = parsed;
+                    $('#json-error').addClass('d-none');
+                    let modalEl = document.getElementById('configModal');
+                    let modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+                    loadConfigIntoTextarea();
+                } catch (e) {
+                    $('#json-error').text("Ошибка JSON: " + e.message).removeClass('d-none');
+                }
+            });
+        });
+
+        function parseAndSetQuestionsFile(rawContent, filename) {
+            try {
+                let cleanContent = rawContent.trim();
+                if (cleanContent.includes('=')) {
+                    let equalIndex = cleanContent.indexOf('=');
+                    cleanContent = cleanContent.substring(equalIndex + 1).trim();
+                    if (cleanContent.endsWith(';')) {
+                        cleanContent = cleanContent.slice(0, -1).trim();
+                    }
+                }
+
+                let parsed = JSON.parse(cleanContent);
+                if (!Array.isArray(parsed)) {
+                    throw new Error("Не удалось извлечь массив вопросов.");
+                }
+
+                defaultQuestionsData = parsed;
+                loadConfigIntoTextarea();
+
+                let qCount = parsed[0] && parsed[0].name ? parsed.length - 1 : parsed.length;
+                $('#file-name-text').text(filename);
+                $('#file-q-count').text(qCount);
+                $('#loaded-file-info').removeClass('d-none');
+
+            } catch (err) {
+                alert("Ошибка чтения файла: " + err.message);
+            }
+        }
+
+        function prepareAndShuffleQuestion(rawQ) {
+            let q = JSON.parse(JSON.stringify(rawQ));
+            let correctVariantText = q.variants[q.answer !== undefined ? q.answer : 0];
+
+            for (let i = q.variants.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [q.variants[i], q.variants[j]] = [q.variants[j], q.variants[i]];
+            }
+
+            q.answer = q.variants.indexOf(correctVariantText);
+            return q;
+        }
+
+        function loadConfigIntoTextarea() {
+            $('#json-input').val(JSON.stringify(defaultQuestionsData, null, 4));
+        }
+
+        function initQuizSession() {
+            let rawQuestions = [];
+
+            if (defaultQuestionsData.length > 0 && defaultQuestionsData[0].name) {
+                quizTitle = defaultQuestionsData[0].name;
+                rawQuestions = defaultQuestionsData.slice(1);
+            } else {
+                quizTitle = "Экзамен Квиз";
+                rawQuestions = defaultQuestionsData;
+            }
+
+            $('#quiz-main-title').text(quizTitle);
+
+            mainQueue = rawQuestions.map(q => prepareAndShuffleQuestion(q));
+            totalInitialCount = mainQueue.length;
+            redemptionQueue = [];
+            
+            score = 0;
+            firstTryCorrectCount = 0;
+            redemptionCorrectCount = 0;
+            questionsSinceLastRedemption = 0;
+            totalItemsProcessed = 0;
+
+            $('#welcome-screen').addClass('d-none');
+            $('#results-screen').addClass('d-none');
+            $('#quiz-screen').removeClass('d-none');
+
+            loadNextQuestion();
+        }
+
+        function loadNextQuestion() {
+            isAnsweringLocked = false;
+            $('#ai-explanation-box').hide();
+            
+            if (redemptionQueue.length > 0 && (questionsSinceLastRedemption >= 5 || mainQueue.length === 0)) {
+                isRedemptionMode = true;
+                currentActiveQuestion = redemptionQueue.shift();
+                if (currentActiveQuestion.remainingLives === undefined) {
+                    currentActiveQuestion.remainingLives = 3;
+                }
+            } else {
+                if (mainQueue.length === 0 && redemptionQueue.length === 0) {
+                    showResults();
+                    return;
+                }
+                if (mainQueue.length === 0 && redemptionQueue.length > 0) {
+                    isRedemptionMode = true;
+                    currentActiveQuestion = redemptionQueue.shift();
+                    if (currentActiveQuestion.remainingLives === undefined) {
+                        currentActiveQuestion.remainingLives = 3;
+                    }
+                } else {
+                    isRedemptionMode = false;
+                    currentActiveQuestion = mainQueue.shift();
+                    questionsSinceLastRedemption++;
+                }
+            }
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            let totalRemainingApprox = mainQueue.length + redemptionQueue.length + 1;
+            let progressPercent = Math.min(100, Math.round((totalItemsProcessed / (totalInitialCount + totalItemsProcessed + totalRemainingApprox)) * 100));
+            
+            if (isRedemptionMode) {
+                $('#question-counter-badge').text("Redemption Round");
+                $('#redemption-status-badge').removeClass('d-none');
+                $('#lives-count').text(currentActiveQuestion.remainingLives);
+            } else {
+                $('#question-counter-badge').text(`Вопрос (${totalInitialCount - mainQueue.length} из ${totalInitialCount})`);
+                $('#redemption-status-badge').addClass('d-none');
+            }
+
+            $('#progress-bar-fill').css('width', progressPercent + '%');
+            $('#current-score').text(score);
+
+            $('#question-text').text(currentActiveQuestion.question);
+
+            let container = $('#variants-container');
+            container.empty();
+
+            currentActiveQuestion.variants.forEach((variant, index) => {
+                let btn = $('<button></button>')
+                    .addClass('btn btn-option w-100 text-start')
+                    .text(variant)
+                    .attr('data-index', index)
+                    .on('click', function() {
+                        if (!isAnsweringLocked) {
+                            handleAnswerSelection(index, $(this));
+                        }
+                    });
+                container.append(btn);
+            });
+        }
+
+        function handleAnswerSelection(selectedIndex, $clickedButton) {
+            isAnsweringLocked = true;
+            $('.btn-option').prop('disabled', true);
+
+            let correctIndex = currentActiveQuestion.answer;
+
+            if (selectedIndex === correctIndex) {
+                $clickedButton.addClass('correct');
+                
+                if (isRedemptionMode) {
+                    redemptionCorrectCount++;
+                    score += 5;
+                } else {
+                    firstTryCorrectCount++;
+                    score += 10;
+                }
+                
+                totalItemsProcessed++;
+
+            } else {
+                $clickedButton.addClass('incorrect');
+                $(`.btn-option[data-index="${correctIndex}"]`).addClass('correct');
+
+                if (!isRedemptionMode) {
+                    let itemToRedeem = JSON.parse(JSON.stringify(currentActiveQuestion));
+                    itemToRedeem.remainingLives = 3;
+                    itemToRedeem = prepareAndShuffleQuestion(itemToRedeem);
+                    redemptionQueue.push(itemToRedeem);
+                    questionsSinceLastRedemption = 0;
+                } else {
+                    currentActiveQuestion.remainingLives--;
+                    if (currentActiveQuestion.remainingLives > 0) {
+                        let reShuffled = prepareAndShuffleQuestion(currentActiveQuestion);
+                        reShuffled.remainingLives = currentActiveQuestion.remainingLives;
+                        redemptionQueue.push(reShuffled);
+                    }
+                }
+
+                totalItemsProcessed++;
+            }
+
+            setTimeout(() => {
+                loadNextQuestion();
+            }, 1000);
+        }
+
+        function showResults() {
+            $('#quiz-screen').addClass('d-none');
+            $('#results-screen').removeClass('d-none');
+
+            $('#final-score').text(score);
+            $('#final-correct').text(firstTryCorrectCount);
+            $('#final-redemption').text(redemptionCorrectCount);
+        }
+    </script>
+</body>
+</html>
